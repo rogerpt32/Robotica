@@ -110,7 +110,7 @@ def goto(x,y,x_neato,y_neato,theta_neato,safe_p):
 	S = 121.5
 	tiempo = 5
 
-	safe=550
+	safe=400
 	error_margin=20
 	x=x+safe
 
@@ -139,67 +139,16 @@ def goto(x,y,x_neato,y_neato,theta_neato,safe_p):
 	else:
 		lv=get_laser()
 		min_dist=safe*2
-		min_dist_left = 10000
-		min_dist_right = 10000
-		#mira hacia los lados, e intenta encontrar las esquinas de las cajas
-		#suponemos que las cajas tienen la misma medida
-		#miramos si las esquinas estan a una distancia suficientemente igual para saber que estamos en el medio
-		for l in lv:#hay que comprobar que esto este bien
-			if l[0]>135 and l[0]<180 and l[1]<min_dist_left:
-				min_dist_left=l[1]
-			if l[0]>180 and l[0]<225 and l[1]<min_dist_right:
-				min_dist_right=l[1]
+		for l in lv:
 			if l[0]>177 and l[0]<183 and l[1]<min_dist:
 				min_dist=l[1]
-		if abs(min_dist_right - min_dist_left) > 60:
-			if min_dist_left < min_dist_right: #gira 90 grados hacia un lado y avanza un poquito y vuelve a orientarte
-				distancia_R = (S * math.pi/2)
-				distancia_L = (-S * math.pi/2)
-				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
-					distancia_R) + ' Speed ' + str(speed)
-				envia(ser, comando)
-				time.sleep(tiempo/3)
-				distancia_R = (-40)
-				distancia_L = (-40)
-				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
-					distancia_R) + ' Speed ' + str(speed)
-				envia(ser, comando)
-				time.sleep(tiempo/10)
-				distancia_R = (-S * math.pi / 2)
-				distancia_L = (S * math.pi / 2)
-				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
-					distancia_R) + ' Speed ' + str(speed)
-				envia(ser, comando)
-				time.sleep(tiempo/3)
-			else: #lo mismo pero al reves (muchas lineas seguro que se puede reducir pero bue)
-				distancia_R = (-S * math.pi / 2)
-				distancia_L = (S * math.pi / 2)
-				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
-					distancia_R) + ' Speed ' + str(speed)
-				envia(ser, comando)
-				time.sleep(tiempo/3)
-				distancia_R = (-40)
-				distancia_L = (-40)
-				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
-					distancia_R) + ' Speed ' + str(speed)
-				envia(ser, comando)
-				time.sleep(tiempo/10)
-				distancia_R = (S * math.pi / 2)
-				distancia_L = (-S * math.pi / 2)
-				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
-					distancia_R) + ' Speed ' + str(speed)
-				envia(ser, comando)
-				time.sleep(tiempo/3)
-			return safe_p
-		else:
-			if min_dist < safe * 2:
-				min_dist = min_dist - 50
-				distancia_L = -min_dist
-				distancia_R = -min_dist
-				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
-					distancia_R) + ' Speed ' + str(speed)
-				envia(ser, comando)
-				time.sleep(tiempo/2)
+		if min_dist<safe*2:
+			min_dist=min_dist-50
+			distancia_L=-min_dist
+			distancia_R=-min_dist
+			comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(distancia_R) + ' Speed ' + str(speed)
+			envia(ser,comando)
+			time.sleep(tiempo*2)
 		return safe_p
 
 	comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(distancia_R) + ' Speed ' + str(speed)
@@ -211,9 +160,6 @@ def goto(x,y,x_neato,y_neato,theta_neato,safe_p):
 
 # Llamada a la funcion main
 if __name__ == '__main__':
-	x_ini = int(input("x inicial = "))
-	y_ini = int(input("y inicial = "))
-	theta_ini = float(input("theta inicial = "))
 	try:
 		global ser, L_ini, R_ini, safe_p
 		# Open the Serial Port.
@@ -246,9 +192,9 @@ if __name__ == '__main__':
 		direccion = 0
 
 		L_ini, R_ini = get_motors()
-		x_world=x_ini
-		y_world=y_ini
-		theta_world=theta_ini
+		x_world=0
+		y_world=0
+		theta_world=0
 		safe_p=False
 
 		if os.path.isfile("./laser.json"):
