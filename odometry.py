@@ -103,7 +103,7 @@ def save_pose(xw,yw):
 	ljson.write(json.dumps({"pose": data},indent=4,sort_keys=True))
 	ljson.close()
 
-def goto(x,y,x_neato,y_neato,theta_neato,safe_p): 
+def goto(x,y,theta_final,x_neato,y_neato,theta_neato,state): 
 	# x and y where we want to go
 	# x_neato and y_neato where we are
 	speed=100
@@ -111,10 +111,12 @@ def goto(x,y,x_neato,y_neato,theta_neato,safe_p):
 	tiempo = 5
 
 	safe=550
-	error_margin=20
-	x=x+safe
-
-	if (((x-x_neato)>error_margin*2 or (x-x_neato)<-error_margin*2) or ((y-y_neato)>error_margin or (y-y_neato<-error_margin))) and not safe_p:
+	error_margin=40
+	x=x+safe*math.cos(theta_final)
+	y=y+safe*math.sin(theta_final)
+	if state=='FINISH':
+		return state
+	if (((x-x_neato)>error_margin or (x-x_neato)<-error_margin) or ((y-y_neato)>error_margin or (y-y_neato<-error_margin))) and state=='MOV':
 	# d=math.sqrt(math.pow((x-x_neato),2)+math.pow((y-y_neato),2))
 		if (((x-x_neato)>error_margin*10 or (x-x_neato)<-error_margin*10) or ((y-y_neato)>error_margin*10 or (y-y_neato<-error_margin*10))):
 			speed=200
@@ -128,9 +130,10 @@ def goto(x,y,x_neato,y_neato,theta_neato,safe_p):
 
 		distancia_R = ((speed + (S * theta)) * tiempo)
 		distancia_L = ((speed + (-S * theta)) * tiempo)
-	elif theta_neato>0.1 or theta_neato<-0.1:
-		safe_p=True
-		theta=theta_neato
+	elif abs(theta_neato-theta_final)>0.1:
+		print('align')
+		state='ALIGN'
+		theta=theta_neato-theta_final
 		if theta > math.pi:
 			theta=theta-2*math.pi
 		theta=-theta
@@ -138,7 +141,7 @@ def goto(x,y,x_neato,y_neato,theta_neato,safe_p):
 		distancia_L = (-S * theta)
 	else:
 		lv=get_laser()
-		min_dist=safe*2
+		min_dist=safe*3
 		min_dist_left = 10000
 		min_dist_right = 10000
 		#mira hacia los lados, e intenta encontrar las esquinas de las cajas
@@ -152,47 +155,49 @@ def goto(x,y,x_neato,y_neato,theta_neato,safe_p):
 			if l[0]>177 and l[0]<183 and l[1]<min_dist:
 				min_dist=l[1]
 		if abs(min_dist_right - min_dist_left) > 60:
+			print("correcting")
 			if min_dist_left < min_dist_right: #gira 90 grados hacia un lado y avanza un poquito y vuelve a orientarte
 				distancia_R = (S * math.pi/2)
 				distancia_L = (-S * math.pi/2)
 				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
 					distancia_R) + ' Speed ' + str(speed)
 				envia(ser, comando)
-				time.sleep(tiempo/3)
+				time.sleep(tiempo/2)
 				distancia_R = (-40)
 				distancia_L = (-40)
 				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
 					distancia_R) + ' Speed ' + str(speed)
 				envia(ser, comando)
-				time.sleep(tiempo/10)
+				time.sleep(tiempo/5)
 				distancia_R = (-S * math.pi / 2)
 				distancia_L = (S * math.pi / 2)
 				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
 					distancia_R) + ' Speed ' + str(speed)
 				envia(ser, comando)
-				time.sleep(tiempo/3)
+				time.sleep(tiempo/2)
 			else: #lo mismo pero al reves (muchas lineas seguro que se puede reducir pero bue)
 				distancia_R = (-S * math.pi / 2)
 				distancia_L = (S * math.pi / 2)
 				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
 					distancia_R) + ' Speed ' + str(speed)
 				envia(ser, comando)
-				time.sleep(tiempo/3)
+				time.sleep(tiempo/2)
 				distancia_R = (-40)
 				distancia_L = (-40)
 				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
 					distancia_R) + ' Speed ' + str(speed)
 				envia(ser, comando)
-				time.sleep(tiempo/10)
+				time.sleep(tiempo/5)
 				distancia_R = (S * math.pi / 2)
 				distancia_L = (-S * math.pi / 2)
 				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(
 					distancia_R) + ' Speed ' + str(speed)
 				envia(ser, comando)
-				time.sleep(tiempo/3)
-			return safe_p
+				time.sleep(tiempo/2)
+			return state
 		else:
-			if min_dist < safe * 2:
+			if min_dist < safe * 3:
+				print("parking")
 				min_dist = min_dist - 50
 				distancia_L = -min_dist
 				distancia_R = -min_dist
@@ -200,11 +205,14 @@ def goto(x,y,x_neato,y_neato,theta_neato,safe_p):
 					distancia_R) + ' Speed ' + str(speed)
 				envia(ser, comando)
 				time.sleep(tiempo/2)
-		return safe_p
+			else:
+				print("finish")
+				state='FINISH'
+		return state
 
 	comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(distancia_R) + ' Speed ' + str(speed)
 	envia(ser,comando)
-	return safe_p
+	return state
 
 
 
@@ -214,8 +222,11 @@ if __name__ == '__main__':
 	x_ini = int(input("x inicial = "))
 	y_ini = int(input("y inicial = "))
 	theta_ini = float(input("theta inicial = "))
+	x_final = int(input("x final = "))
+	y_final = int(input("y final = "))
+	theta_final = float(input("theta final = "))
 	try:
-		global ser, L_ini, R_ini, safe_p
+		global ser, L_ini, R_ini, state
 		# Open the Serial Port.
 		ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=0.1)
 
@@ -249,7 +260,7 @@ if __name__ == '__main__':
 		x_world=x_ini
 		y_world=y_ini
 		theta_world=theta_ini
-		safe_p=False
+		state='MOV'
 
 		if os.path.isfile("./laser.json"):
 			os.remove("./laser.json")
@@ -286,7 +297,10 @@ if __name__ == '__main__':
 				parse_laser(x_world,y_world,theta_world,lv)
 
 			if go:
-				safe_p=goto(0,0,x_world,y_world,theta_world,safe_p)
+				state=goto(x_final,y_final,theta_final,x_world,y_world,theta_world,state)
+				if state=='FINISH':
+					go=False
+					state='MOV'
 
 			if tecla == 'w' or tecla == 's':
 

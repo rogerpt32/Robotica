@@ -48,10 +48,9 @@ def odometry(L, R,x_world, y_world, theta_world):
 	return x_world, y_world, theta_world
 
 
-def goto(y_neato,theta_neato): 
+def goto(y_neato,theta_neato,speed): 
 	# x and y where we want to go
 	# x_neato and y_neato where we are
-	speed=50
 	S = 121.5
 	tiempo = 5
 	estat='RECUPERANT'
@@ -163,12 +162,20 @@ if __name__ == '__main__':
 				print('test off')
 			msg = envia(ser,'GetLDSScan',0.1)
 			laser_values=[]
+			left=[]
+			right=[]
 			wall=[]
 			for line in msg.split('\r\n')[2:362]:
 				s = line.split(',')
 				if int(s[3])==0 and int(s[1])<detection_dist and (int(s[0])>(360-fov) or int(s[0])<fov):
 					lr = [int(s[0]), int(s[1])]
 					laser_values.append(lr)
+				if int(s[3])==0 and int(s[1])<detection_dist and (int(s[0])<360 or int(s[0])>270+fov):
+					lr = [int(s[0]), int(s[1])]
+					right.append(lr)
+				if int(s[3])==0 and int(s[1])<detection_dist and (int(s[0])>0 or int(s[0])<90-fov):
+					lr = [int(s[0]), int(s[1])]
+					left.append(lr)
 
 			# print(laser_values)
 			min_dist=detection_dist
@@ -180,6 +187,7 @@ if __name__ == '__main__':
 			distancia_R = speed*tiempo
 			distancia_L = speed*tiempo
 			if avoid==True:
+				going=False
 				if ang>(360-fov):
 					distancia_L=distancia_L*(float(min_dist-250)/float(detection_dist))
 					if estat!='RECUPERANT':
@@ -189,11 +197,37 @@ if __name__ == '__main__':
 					if estat!='RECUPERANT':
 						estat='RECUPERANT'
 				elif estat=='RECUPERANT':
-						estat = goto(y_world,theta_world)
-						continue
-			comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(distancia_R) + ' Speed ' + str(speed)
-			envia(ser,comando, 0.5)
-			print estat
+					min_l = 1000
+					min_r = 1000
+					if y_world > 0:
+						for l in left: 
+							if min_l > l[1]: 
+								min_l = l[1]
+						if min_l > 300:
+							estat = goto(y_world,theta_world,speed)
+							print("going")
+							going=True
+						else:
+							print("near "+str(distancia_L)+" "+str(distancia_R))
+					elif y_world < 0:
+						for r in right: 
+							if min_r > r[1]: 
+								min_r = r[1]
+						if min_r > 300:
+							estat = goto(y_world,theta_world,speed)
+							print("going")
+							going=True
+						else:
+							print("near "+str(distancia_L)+" "+str(distancia_R))
+					else:
+						estat = goto(y_world,theta_world,speed)
+						print("going")
+						going=True
+			if not going:
+				print("not going")	
+				comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(distancia_R) + ' Speed ' + str(speed)
+				envia(ser,comando, 0.5)
+				print estat
 
 		if tecla == 'w':
 			

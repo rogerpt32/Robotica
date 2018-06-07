@@ -92,8 +92,12 @@ if __name__ == '__main__':
 		min_dist=detection_dist
 		ang=(-1)
 		for r in laser_values:
-			if min_dist>r[1]:
-				min_dist=r[1]
+			if r[0]>180:
+				dist=r[1]+180-(r[0]-180)
+			else:
+				dist=r[1]+r[0]
+			if min_dist>dist:
+				min_dist=dist
 				ang=r[0]
 		if ang==-1:
 			ang=180
@@ -101,11 +105,13 @@ if __name__ == '__main__':
 		if theta < -3: theta = theta + 2*math.pi
 		distancia_R = ((speed + (S * theta)) * tiempo)
 		distancia_L = ((speed + (-S * theta)) * tiempo)
-		if (ang>325 or ang<35) and min_dist<400:
+		if (ang>330 or ang<30) and min_dist<700:
 			distancia_L=-6000
 			distancia_R=-6000
 
-		print "theta " + str(theta)
+		print "mindist = "+str(min_dist)
+		print "ang = "+str(ang)
+		# print "theta " + str(theta)
 		print(distancia_L)
 		print(distancia_R)
 		comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(distancia_R) + ' Speed ' + str(speed)
