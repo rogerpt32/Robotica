@@ -124,8 +124,7 @@ if __name__ == '__main__':
 			# print(laser_values)
 			distancia_R = (speed)*tiempo
 			distancia_L = (speed)*tiempo
-			print(distancia_L)
-			print(distancia_R)
+			
 			'''
 			if avoid==True:
 				min_dist=detection_dist
@@ -153,7 +152,7 @@ if __name__ == '__main__':
 					if f_dist>r[1]:
 						f_dist=r[1]
 				print 'f = ' + str(f_dist)
-				if f_dist<400:
+				if f_dist<500:
 					distancia_R=-(S*math.pi/2)
 					distancia_L=(S*math.pi/2)
 					time.sleep(2)
@@ -177,8 +176,8 @@ if __name__ == '__main__':
 							elif l_dist>500:
 								distancia_R=distancia_R*max(0.4,400.0/float(l_dist))
 						last_l = l_dist
-			#print(distancia_L)
-			#print(distancia_R)
+			print(distancia_L)
+			print(distancia_R)
 			t=time.time()
 			comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(distancia_R) + ' Speed ' + str(speed * pow(-1, direccion))
 			envia(ser,comando, 0.1)

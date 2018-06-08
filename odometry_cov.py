@@ -263,14 +263,15 @@ if __name__ == '__main__':
 		viewer = http_viewer.HttpViewer(port_web_server, l_queue, r_queue)
 		#viewer.main_http_server()
 
-                # Inicializacion parametros para matriz covariancias
+		# Inicializacion parametros para matriz covariancias
 
-                pk1 = np.matrix([[0.0001, 0.0001, 0.0001], [0.0001, 0.0001, 0.0001], [0.0001, 0.0001, 0.0001]])
-                x_w = x_ini
-                y_w = y_ini
-                suma_theta = theta_ini
-                pose_est1 = np.matrix([[x_ini], [y_ini], [suma_theta]])
-                global V = np.matrix([0.0001, 0], [0, 0.000001]])
+		pk1 = np.matrix([[0.0001, 0.0001, 0.0001], [0.0001, 0.0001, 0.0001], [0.0001, 0.0001, 0.0001]])
+		x_w = x_ini
+		y_w = y_ini
+		suma_theta = theta_ini
+		pose_est1 = np.matrix([[x_ini], [y_ini], [suma_theta]])
+		global V
+		V = np.matrix([[0.0001, 0], [0, 0.000001]])
 
 		# Parametros Robot.
 		S = 121.5		# en mm
@@ -310,9 +311,9 @@ if __name__ == '__main__':
 			# Hacer calculos para covariancias
 			(x_w, y_w, suma_theta, delta_d, delta_theta) = odometry_error(L, R, x_w, y_w, suma_theta)
 			pose_t = np.matrix([[x_w], [y_w], [suma_theta]])
-			F_x = np.matrix([[1, 0, -(delta_d*math.sin(suma_theta+delta_theta))], [0, 1, -(delta_d*math.cos(suma_theta+delta_theta))], [0 0 1]])
-			F_v = np.matrix([[math.cos(suma_theta+delta_theta), -delta_d*math.sin(suma_theta+delta_theta)], [math.sin(suma_theta+delta_theta) delta_d*math.cos(suma_theta+delta_theta)], [0 1]])
-			pose_est1 = pose_est1 + F_x*(pose_t - pose_est1) + F_v*np.diagonal(V)
+			F_x = np.matrix([[1, 0, -(delta_d*math.sin(suma_theta+delta_theta))], [0, 1, -(delta_d*math.cos(suma_theta+delta_theta))], [0, 0, 1]])
+			F_v = np.matrix([[math.cos(suma_theta+delta_theta), -delta_d*math.sin(suma_theta+delta_theta)], [math.sin(suma_theta+delta_theta), delta_d*math.cos(suma_theta+delta_theta)], [0, 1]])
+			pose_est1 = pose_est1 + F_x*(pose_t - pose_est1) + F_v*np.diagonal(V).reshape(2,1)
 			pk1 = F_x*pk1*F_x.transpose() + F_v*V*F_v.transpose()
 			print "Pose estimada: "
 			print pose_est1
