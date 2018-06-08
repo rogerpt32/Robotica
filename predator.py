@@ -23,7 +23,13 @@ def getch():
         return sys.stdin.read(1)
     return False
 
+def distance(a,b): #cyclic distance for angles
+    i = (a - b) % 360
+    j = (b - a) % 360
+    return min(i, j)
 
+def similar(a,b):
+	return abs(a-b)<200
 
 # Llamada a la funcion main
 if __name__ == '__main__':
@@ -92,14 +98,23 @@ if __name__ == '__main__':
 		min_dist=detection_dist
 		ang=(-1)
 		for r in laser_values:
-			if min_dist>r[1]:
-				min_dist=r[1]
-				ang=r[0]
+			if r[0]>180:
+				dist=r[1]+180-(r[0]-180)
+			else:
+				dist=r[1]+r[0]
+			if min_dist>dist:
+				near=0
+				for aprox in laser_values:
+					if distance(aprox[0],r[0])<10 and similar(aprox[1],r[1]):
+						near+=1
+				if near<12:
+					min_dist=dist
+					ang=r[0]
 		if ang==-1:
 			ang=0
 		theta=math.radians(ang) if ang <180 else -math.radians(ang-180)
-		distancia_R = ((speed + (S * theta)) * tiempo)
-		distancia_L = ((speed + (-S * theta)) * tiempo)
+		distancia_R = ((speed*0.8 + (S * theta)) * tiempo)
+		distancia_L = ((speed*0.8 + (-S * theta)) * tiempo)
 		#if ang>325 or ang<35:
 		#	distancia_R=-distancia_L
 		#	distancia_L=-distancia_R

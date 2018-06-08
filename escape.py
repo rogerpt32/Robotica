@@ -103,8 +103,8 @@ if __name__ == '__main__':
 			ang=180
 		theta=(math.radians(ang))-math.pi
 		if theta < -3: theta = theta + 2*math.pi
-		distancia_R = ((speed + (S * theta)) * tiempo)
-		distancia_L = ((speed + (-S * theta)) * tiempo)
+		distancia_R = ((speed*0.8 + (S * theta)) * tiempo)
+		distancia_L = ((speed*0.8 + (-S * theta)) * tiempo)
 		if (ang>330 or ang<30) and min_dist<700:
 			distancia_L=-6000
 			distancia_R=-6000
