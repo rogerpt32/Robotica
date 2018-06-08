@@ -166,16 +166,16 @@ if __name__ == '__main__':
 					if fl_dist<500:
 						distancia_L=distancia_L*(float(fl_dist)/650.0)
 					else:
-						l_dist=3000
+						l_dist=detection_dist
 						for r in wall_left:
 							if l_dist>r[1]:
 								l_dist=r[1]
 						print 'l = ' + str(l_dist)
 						if not fl_dist < l_dist:
-							if l_dist<300 and last_l >= l_dist:
+							if l_dist<300:
 								distancia_L=distancia_L*(float(l_dist)-150/150.0)
-							elif l_dist>500 and last_l <= l_dist:
-								distancia_R=distancia_R*max(0.5,500.0/float(l_dist))
+							elif l_dist>500:
+								distancia_R=distancia_R*max(0.4,400.0/float(l_dist))
 						last_l = l_dist
 			#print(distancia_L)
 			#print(distancia_R)
