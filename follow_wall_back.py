@@ -78,7 +78,7 @@ if __name__ == '__main__':
 	follow=True
 	detection_dist=1000
 	fov=35
-	fov_block=20
+	fov_block=15
 	last_l = 0
 	
 	while tecla != "q":
@@ -114,7 +114,7 @@ if __name__ == '__main__':
 				if int(s[3])==0 and int(s[1])<detection_dist and int(s[0])>(270-fov_block) and int(s[0])<(270+fov_block):
 					lr = [int(s[0]), int(s[1])]
 					wall_left.append(lr)
-				if int(s[3])==0 and int(s[1])<detection_dist and ((int(s[0])>(180-fov_block) and int(s[0])<(180+fov_block))):
+				if int(s[3])==0 and int(s[1])<detection_dist and ((int(s[0])>(195-fov_block) and int(s[0])<(180+fov_block))):
 					lr = [int(s[0]), int(s[1])]
 					wall_front.append(lr)
 				if int(s[3])==0 and int(s[1])<detection_dist and int(s[0])>(180+fov_block) and int(s[0])<(270-fov_block):
@@ -147,23 +147,25 @@ if __name__ == '__main__':
 						distancia_R=distancia_R-min(speed*tiempo,diff_R)
 						diff_R=diff_R-min(speed*tiempo,diff_R)'''
 			if follow==True:
+				front=False
 				f_dist=detection_dist
 				for r in wall_front:
 					if f_dist>r[1]:
 						f_dist=r[1]
 				print 'f = ' + str(f_dist)
-				if f_dist<500:
+				if f_dist<400:
 					distancia_R=-(S*math.pi/2)
 					distancia_L=(S*math.pi/2)
-					time.sleep(2)
+					front=True
+					# time.sleep(2) 
 				else:
 					fl_dist=detection_dist
 					for r in wall_fl:
 						if fl_dist>r[1]:
 							fl_dist=r[1]
 					print 'fl = ' + str(fl_dist)
-					if fl_dist<500:
-						distancia_L=distancia_L*(float(fl_dist)/650.0)
+					if fl_dist<450:
+						distancia_L=distancia_L*(float(fl_dist)/450.0)
 					else:
 						l_dist=detection_dist
 						for r in wall_left:
@@ -171,16 +173,18 @@ if __name__ == '__main__':
 								l_dist=r[1]
 						print 'l = ' + str(l_dist)
 						if not fl_dist < l_dist:
-							if l_dist<300:
-								distancia_L=distancia_L*(float(l_dist)-150/150.0)
-							elif l_dist>500:
-								distancia_R=distancia_R*max(0.4,400.0/float(l_dist))
+							if l_dist<200:
+								distancia_L=distancia_L*((float(l_dist)+50.0)/250.0)
+							elif l_dist>350:
+								distancia_R=distancia_R*max(0.4,350.0/float(l_dist))
 						last_l = l_dist
 			print(distancia_L)
 			print(distancia_R)
 			t=time.time()
 			comando = 'SetMotor LWheelDist ' + str(distancia_L) + ' RWheelDist ' + str(distancia_R) + ' Speed ' + str(speed * pow(-1, direccion))
 			envia(ser,comando, 0.1)
+			if front:
+				time.sleep(1)
 			#print comando
 			#print("set motor"+str(time.time()-t))
 
